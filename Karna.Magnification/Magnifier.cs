@@ -10,7 +10,7 @@ namespace Karna.Magnification
     {
         private Form form;
         private IntPtr hwndMag;
-        private float magnification;
+        public float magnification;
         private bool initialized;
         private RECT magWindowRect = new RECT();
         private System.Windows.Forms.Timer timer;
@@ -117,6 +117,10 @@ namespace Karna.Magnification
                 timer.Enabled = false;
                 return;
             }
+            
+            // Set the magnification factor.
+            Transformation matrix = new Transformation(magnification);
+            NativeMethods.MagSetWindowTransform(hwndMag, ref matrix);
 
             // Set the source rectangle for the magnifier control.
             NativeMethods.MagSetWindowSource(hwndMag, sourceRect);
@@ -160,10 +164,11 @@ namespace Karna.Magnification
 
             // Create a magnifier control that fills the client area.
             NativeMethods.GetClientRect(form.Handle, ref magWindowRect);
-            hwndMag = NativeMethods.CreateWindow((int)ExtendedWindowStyles.WS_EX_CLIENTEDGE, NativeMethods.WC_MAGNIFIER,
+            hwndMag = NativeMethods.CreateWindow((int)ExtendedWindowStyles.WS_EX_TRANSPARENT, NativeMethods.WC_MAGNIFIER,
                 "MagnifierWindow", (int)WindowStyles.WS_CHILD | (int)MagnifierStyle.MS_SHOWMAGNIFIEDCURSOR |
+                //"MagnifierWindow", (int)WindowStyles.WS_CHILD |
                 (int)WindowStyles.WS_VISIBLE,
-                magWindowRect.left, magWindowRect.top, magWindowRect.right, magWindowRect.bottom, form.Handle, IntPtr.Zero, hInst, IntPtr.Zero);
+                activeRect.left, activeRect.top, activeRect.right, activeRect.bottom, form.Handle, IntPtr.Zero, hInst, IntPtr.Zero);
 
             if (hwndMag == IntPtr.Zero)
             {
